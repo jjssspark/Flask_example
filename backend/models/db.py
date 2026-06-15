@@ -1,25 +1,26 @@
 import pymysql
 from pymysql import Error
+from config import Config
 
 class Database:
-    print("host =", "localhost")
-    print("database =", "test")
-    print("user =", "root")
     def __init__(self):
         self.connection = None
+
         try:
             self.connection = pymysql.connect(
-                host='mariadb',
-                port=3306,
-                database='test',
-                user='root',
-                password='park!6443',
+                host=Config.DB_HOST,
+                port=Config.DB_PORT,
+                database=Config.DB_NAME,
+                user=Config.DB_USER,
+                password=Config.DB_PASSWORD,
                 charset='utf8mb4',
                 cursorclass=pymysql.cursors.DictCursor
             )
             print("MariaDB에 성공적으로 연결되었습니다.")
+
         except Error as e:
             print(f"MariaDB 연결 중 오류 발생: {e}")
+            self.connection = None
 
     def save_bmi_record(self, weight, height, bmi, category):
         try:
@@ -36,10 +37,11 @@ class Database:
 
             self.connection.commit()
             print("BMI 기록이 성공적으로 저장되었습니다.")
-            return Tru
-        except Exception as e:
-            print("DB 연결 오류:", repr(e))
-            self.connection = None
+            return True
+
+        except Error as e:
+            print(f"데이터 저장 중 오류 발생: {e}")
+            return False
 
     def get_bmi_records(self, limit=10):
         try:
@@ -56,7 +58,6 @@ class Database:
                 """
                 cursor.execute(query, (limit,))
                 records = cursor.fetchall()
-                print("조회된 이력:", records)
                 return records
 
         except Error as e:
