@@ -7,9 +7,8 @@ class Database:
         self.connection = None
         try:
             self.connection = pymysql.connect(
-                host='localhost',
-                # host='mariadb',  # cloudtype 사용 시
-                # port=3306,   # cloudtype 사용 시
+                host='mariadb',  # cloudtype 사용 시
+                port=3306,   # cloudtype 사용 시
                 database='test',  # test 데이터베이스 사용
                 user='root',
                 password='park!6443',  # mariadb 설치 당시의 패스워드, 실제 환경에서는 보안을 위해 환경변수 등을 사용
@@ -22,45 +21,32 @@ class Database:
 
     def save_bmi_record(self, weight, height, bmi, category):
         try:
-            if self.connection is None:
-                print("데이터베이스 연결이 없습니다.")
-                return False
-                
             with self.connection.cursor() as cursor:
-                query = """
-                INSERT INTO bmi_records (weight, height, bmi, category)
+                sql = """
+                INSERT INTO bmi_records (height, weight, bmi, category)
                 VALUES (%s, %s, %s, %s)
                 """
-                cursor.execute(query, (weight, height, bmi, category))
-            
-            self.connection.commit()
-            print("BMI 기록이 성공적으로 저장되었습니다.")
-            return True
-        except Error as e:
-            print(f"데이터 저장 중 오류 발생: {e}")
+                cursor.execute(sql, (height, weight, bmi, category))
+                self.connection.commit()   # ← 이게 제일 중요!
+                return True
+        except Exception as e:
+            print("저장 오류:", e)
             return False
-
     def get_bmi_records(self, limit=10):
-    
         try:
-            if self.connection is None:
-                print("데이터베이스 연결이 없습니다.")
-                return []
-                
             with self.connection.cursor() as cursor:
-                query = """
-                SELECT * FROM bmi_records
-                ORDER BY created_at DESC
+                sql = """
+                SELECT height, weight, bmi, category, created_at 
+                FROM bmi_records 
+                ORDER BY created_at DESC 
                 LIMIT %s
                 """
-                cursor.execute(query, (limit,))
-                records = cursor.fetchall()
-            
-            return records
-        except Error as e:
-            print(f"데이터 조회 중 오류 발생: {e}")
-            return []
+                cursor.execute(sql, (limit,))
+                return cursor.fetchall()
 
+        except Exception as e:
+            print("History 조회 오류:", e)
+            return []
     def close(self):
     
         if self.connection:
