@@ -2,6 +2,9 @@ import pymysql
 from pymysql import Error
 
 class Database:
+    print("host =", "localhost")
+    print("database =", "test")
+    print("user =", "root")
     def __init__(self):
         self.connection = None
         try:
@@ -33,9 +36,9 @@ class Database:
 
             self.connection.commit()
             print("BMI 기록이 성공적으로 저장되었습니다.")
-            return True
+            return Tru
         except Exception as e:
-            print("MariaDB 연결 중 오류 발생:", repr(e))
+            print("DB 연결 오류:", repr(e))
             self.connection = None
 
     def get_bmi_records(self, limit=10):
